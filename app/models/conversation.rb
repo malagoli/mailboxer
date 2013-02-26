@@ -4,6 +4,8 @@ class Conversation < ActiveRecord::Base
 	has_many :messages, :dependent => :destroy
 	has_many :receipts, :through => :messages
 
+  has_many :mentions
+
 	validates_presence_of :subject
 
 	before_validation :clean

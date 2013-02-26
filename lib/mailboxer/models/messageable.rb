@@ -62,7 +62,11 @@ module Mailboxer
         message.conversation = convo
         message.recipients = recipients.is_a?(Array) ? recipients : [recipients]
         message.recipients = message.recipients.uniq
-        return message.deliver false,sanitize_text
+        if message.approval_status == "approved"
+          return message.deliver false, sanitize_text
+        else
+          return message.save_not_deliver false, sanitize_text
+        end
       end
 
       #Basic reply method. USE NOT RECOMENDED.
@@ -74,7 +78,11 @@ module Mailboxer
         response.recipients = recipients.is_a?(Array) ? recipients : [recipients]
         response.recipients = response.recipients.uniq
         response.recipients.delete(self)
-        return response.deliver true, sanitize_text
+        if response.approval_status == "approved"
+          return response.deliver true, sanitize_text
+        else
+          return response.save_not_deliver true, sanitize_text
+        end
       end
 
       #Replies to the sender of the message in the conversation

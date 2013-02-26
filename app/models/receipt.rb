@@ -21,6 +21,7 @@ class Receipt < ActiveRecord::Base
   }
   scope :sentbox, where(:mailbox_type => "sentbox")
   scope :inbox, where(:mailbox_type => "inbox")
+  scope :waiting_approval, where(:mailbox_type => "waiting_approval")
   scope :trash, where(:trashed => true)
   scope :not_trash, where(:trashed => false)
   scope :is_read, where(:is_read => true)
