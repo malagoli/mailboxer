@@ -29,11 +29,11 @@ class Conversation < ActiveRecord::Base
     participant(participant).merge(Receipt.is_unread)
   }
 
-  #scope :for_mentionable_with_approved_messages, lambda {|mentionable_type, mentionable_id|
-  #  joins(:messages).joins(:mentions).where(:mentions => {:mentionable_id =>mentionable_id, :mentionable_type => mentionable_type}).where(:notifications => {:approval_status=>3})
+  #scope :for_mentionable_with_approved_messages, lambda {|mentionable|
+  #  joins(:messages).joins(:mentions).where(:mentions => {:mentionable_id => mentionable.id, :mentionable_type => mentionable.class.name}).where(:notifications => {:approval_status=>3})
 
-  scope :for_mentionable, lambda {|mentionable_type, mentionable_id|
-    joins(:mentions).where(:mentions => {:mentionable_id =>mentionable_id, :mentionable_type => mentionable_type})
+  scope :for_mentionable, lambda {|mentionable|
+    joins(:mentions).where(:mentions => {:mentionable_id =>mentionable.id, :mentionable_type => mentionable.class.name})
 
   }
 
