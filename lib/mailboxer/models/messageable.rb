@@ -50,6 +50,22 @@ module Mailboxer
         return Notification.notify_all([self],subject,body,obj,sanitize_text,notification_code)
       end
 
+      def send_message_for_approval(recipients, msg_body, subject, sanitize_text=true, attachment=nil, message_timestamp = Time.now)
+        convo = Conversation.new({:subject => subject})
+        convo.created_at = message_timestamp
+        convo.updated_at = message_timestamp
+        message = messages.new({:body => msg_body, :subject => subject, :attachment => attachment})
+        message.created_at = message_timestamp
+        message.updated_at = message_timestamp
+        message.conversation = convo
+        message.recipients = recipients.is_a?(Array) ? recipients : [recipients]
+        message.recipients = message.recipients.uniq
+        message.approval_status = "waiting_approval"
+
+          return message.save_not_deliver false, sanitize_text
+
+      end
+
       #Sends a messages, starting a new conversation, with the messageable
       #as originator
       def send_message(recipients, msg_body, subject, sanitize_text=true, attachment=nil, message_timestamp = Time.now)
@@ -62,11 +78,8 @@ module Mailboxer
         message.conversation = convo
         message.recipients = recipients.is_a?(Array) ? recipients : [recipients]
         message.recipients = message.recipients.uniq
-        if message.approval_status == "approved"
-          return message.deliver false, sanitize_text
-        else
-          return message.save_not_deliver false, sanitize_text
-        end
+        message.approval_status = "approved"
+        return message.deliver false, sanitize_text
       end
 
       #Basic reply method. USE NOT RECOMENDED.
@@ -78,11 +91,9 @@ module Mailboxer
         response.recipients = recipients.is_a?(Array) ? recipients : [recipients]
         response.recipients = response.recipients.uniq
         response.recipients.delete(self)
-        if response.approval_status == "approved"
+        response.approval_status = "approved"
           return response.deliver true, sanitize_text
-        else
-          return response.save_not_deliver true, sanitize_text
-        end
+
       end
 
       #Replies to the sender of the message in the conversation
@@ -104,6 +115,27 @@ module Mailboxer
         end
         return reply(conversation, conversation.last_message.recipients, reply_body, subject, sanitize_text, attachment)
       end
+
+    def reply_for_approval(conversation, recipients, reply_body, subject=nil, sanitize_text=true, attachment=nil)
+      subject = subject || "RE: #{conversation.subject}"
+      response = messages.new({:body => reply_body, :subject => subject, :attachment => attachment})
+      response.conversation = conversation
+      response.recipients = recipients.is_a?(Array) ? recipients : [recipients]
+      response.recipients = response.recipients.uniq
+      response.recipients.delete(self)
+      response.approval_status = "waiting_approval"
+
+        return response.save_not_deliver true, sanitize_text
+
+    end
+
+    def reply_to_conversation_for_approval(conversation, reply_body, subject=nil, should_untrash=true, sanitize_text=true, attachment=nil)
+      #move conversation to inbox if it is currently in the trash and should_untrash parameter is true.
+      if should_untrash && mailbox.is_trashed?(conversation)
+        mailbox.receipts_for(conversation).untrash
+      end
+      return reply_for_approval(conversation, conversation.last_message.recipients, reply_body, subject, sanitize_text, attachment)
+    end
 
       #Mark the object as read for messageable.
       #
