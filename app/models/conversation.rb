@@ -28,6 +28,9 @@ class Conversation < ActiveRecord::Base
   scope :unread,  lambda {|participant|
     participant(participant).merge(Receipt.is_unread)
   }
+  scope :not_trash,  lambda {|participant|
+    participant(participant).merge(Receipt.not_trash)
+  }
 
   #scope :for_mentionable_with_approved_messages, lambda {|mentionable|
   #  joins(:messages).joins(:mentions).where(:mentions => {:mentionable_id => mentionable.id, :mentionable_type => mentionable.class.name}).where(:notifications => {:approval_status=>3})
