@@ -14,7 +14,7 @@ class Message < Notification
   }
 
   mount_uploader :attachment, AttachmentUploader
-  
+
   include Concerns::ConfigurableMailer
 
   default_value_for :approval_status do
