@@ -52,6 +52,7 @@ module Mailboxer
 
       def send_message_for_approval(recipients, msg_body, subject, sanitize_text=true, attachment=nil, message_timestamp = Time.now)
         convo = Conversation.new({:subject => subject})
+        convo.is_moderated=true
         convo.created_at = message_timestamp
         convo.updated_at = message_timestamp
         message = messages.new({:body => msg_body, :subject => subject, :attachment => attachment})
@@ -109,11 +110,17 @@ module Mailboxer
       #Replies to all the recipients of the last message in the conversation and untrash any trashed message by messageable
       #if should_untrash is set to true (this is so by default)
       def reply_to_conversation(conversation, reply_body, subject=nil, should_untrash=true, sanitize_text=true, attachment=nil)
+        if conversation.is_moderated
+          return reply_to_conversation_for_approval(conversation, reply_body, subject, should_untrash, sanitize_text, attachment)
+        else
+
+
         #move conversation to inbox if it is currently in the trash and should_untrash parameter is true.
         if should_untrash && mailbox.is_trashed?(conversation)
           mailbox.receipts_for(conversation).untrash
         end
         return reply(conversation, conversation.last_message.recipients, reply_body, subject, sanitize_text, attachment)
+        end
       end
 
     def reply_for_approval(conversation, recipients, reply_body, subject=nil, sanitize_text=true, attachment=nil)
