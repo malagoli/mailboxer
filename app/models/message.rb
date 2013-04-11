@@ -36,6 +36,7 @@ class Message < Notification
                        :approval_status => 'not_approved')
   end
 
+if Message.table_exists?
   APPROVAL_STATUS.keys.each do |status_key|
 
     scope "all_#{status_key}", where("#{:approval_status}" => APPROVAL_STATUS[status_key])
@@ -54,6 +55,7 @@ class Message < Notification
   define_method("#{:approval_status}=") do |val|
     write_attribute("#{:approval_status}",APPROVAL_STATUS[val])
   end
+end
 
   class << self
     #Sets the on deliver callback method.
