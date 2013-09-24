@@ -37,8 +37,8 @@ class Conversation < ActiveRecord::Base
 
   scope :for_mentionable, lambda {|mentionable|
     joins(:mentions).where(:mentions => {:mentionable_id =>mentionable.id, :mentionable_type => mentionable.class.name})
-
   }
+
 
   #Mark the conversation as read for one of the participants
 	def mark_as_read(participant)
