@@ -1,5 +1,5 @@
 class Message < Notification
-  attr_accessible :attachment, :approval_status_date, :approval_status
+  attr_accessible :attachment
 
   APPROVAL_STATUS = {"waiting_approval" => 2, "approved" => 3,
                      "not_approved" => 4, "suspended" => 5,  "abuse" => 7}
@@ -153,6 +153,16 @@ end
       end
       self.recipients=nil
     end
-    return sender_receipt
+    sender_receipt
+  end
+
+  private
+  def build_receipt(receiver, mailbox_type, is_read = false)
+    Receipt.new.tap do |receipt|
+      receipt.notification = self
+      receipt.is_read = is_read
+      receipt.receiver = receiver
+      receipt.mailbox_type = mailbox_type
+    end
   end
 end

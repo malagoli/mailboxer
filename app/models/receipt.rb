@@ -1,10 +1,11 @@
 class Receipt < ActiveRecord::Base
+  attr_accessible :trashed, :is_read, :deleted if Mailboxer.protected_attributes?
+
   belongs_to :notification, :validate => true, :autosave => true
   belongs_to :receiver, :polymorphic => :true
   belongs_to :message, :foreign_key => "notification_id"
 
   validates_presence_of :receiver
-  attr_accessible :trashed, :is_read
 
   scope :recipient, lambda { |recipient|
     where(:receiver_id => recipient.id,:receiver_type => recipient.class.base_class.to_s)
@@ -21,8 +22,10 @@ class Receipt < ActiveRecord::Base
   }
   scope :sentbox, lambda { where(:mailbox_type => "sentbox") }
   scope :inbox, lambda { where(:mailbox_type => "inbox") }
-  scope :trash, lambda { where(:trashed => true) }
+  scope :trash, lambda { where(:trashed => true, :deleted => false) }
   scope :not_trash, lambda { where(:trashed => false) }
+  scope :deleted, lambda { where(:deleted => true) }
+  scope :not_deleted, lambda { where(:deleted => false) }
   scope :is_read, lambda { where(:is_read => true) }
   scope :is_unread, lambda { where(:is_read => false) }
 
@@ -50,6 +53,16 @@ class Receipt < ActiveRecord::Base
       update_receipts({:trashed => false}, options)
     end
 
+    #Marks the receipt as deleted
+    def mark_as_deleted(options={})
+      update_receipts({:deleted => true}, options)
+    end
+
+    #Marks the receipt as not deleted
+    def mark_as_not_deleted(options={})
+      update_receipts({:deleted => false}, options)
+    end
+
     #Moves all the receipts from the relation to inbox
     def move_to_inbox(options={})
       update_receipts({:mailbox_type => :inbox, :trashed => false}, options)
@@ -68,15 +81,27 @@ class Receipt < ActiveRecord::Base
       where(options).each do |rcp|
         ids << rcp.id
       end
-      return if ids.empty?
-      conditions = [""].concat(ids)
-      condition = "id = ? "
-      ids.drop(1).each do
-        condition << "OR id = ? "
+      unless ids.empty?
+        conditions = [""].concat(ids)
+        condition = "id = ? "
+        ids.drop(1).each do
+          condition << "OR id = ? "
+        end
+        conditions[0] = condition
+        Receipt.except(:where).except(:joins).where(conditions).update_all(updates)
       end
-      conditions[0] = condition
-      Receipt.except(:where).except(:joins).where(conditions).update_all(updates)
     end
+  end
+
+
+  #Marks the receipt as deleted
+  def mark_as_deleted
+    update_attributes(:deleted => true)
+  end
+
+  #Marks the receipt as not deleted
+  def mark_as_not_deleted
+    update_attributes(:deleted => false)
   end
 
   #Marks the receipt as read
@@ -111,20 +136,18 @@ class Receipt < ActiveRecord::Base
 
   #Returns the conversation associated to the receipt if the notification is a Message
   def conversation
-    return message.conversation if message.is_a? Message
-    return nil
+    message.conversation if message.is_a? Message
   end
 
   #Returns if the participant have read the Notification
   def is_unread?
-    return !self.is_read
+    !self.is_read
   end
 
   #Returns if the participant have trashed the Notification
   def is_trashed?
-    return self.trashed
+    self.trashed
   end
-
 
   protected
 
@@ -149,5 +172,4 @@ class Receipt < ActiveRecord::Base
       integer :receiver_id
     end
   end
-
 end

@@ -1,12 +1,14 @@
-module Mailboxer 
+module Mailboxer
   module Models
     autoload :Messageable, 'mailboxer/models/messageable'
-  end  
-  
+  end
+
   mattr_accessor :default_from
   @@default_from = "no-reply@mailboxer.com"
   mattr_accessor :uses_emails
   @@uses_emails = true
+  mattr_accessor :mailer_wants_array
+  @@mailer_wants_array = false
   mattr_accessor :search_enabled
   @@search_enabled = false
   mattr_accessor :search_engine
@@ -18,14 +20,18 @@ module Mailboxer
   mattr_accessor :notification_mailer
   mattr_accessor :message_mailer
 
-   class << self
+  class << self
     def setup
       yield self
     end
-   end
-   
+
+    def protected_attributes?
+      Rails.version < '4' || defined?(ProtectedAttributes)
+    end
+  end
+
 end
 # reopen ActiveRecord and include all the above to make
 # them available to all our models if they want it
-require 'mailboxer/engine' 
+require 'mailboxer/engine'
 require 'mailboxer/concerns/configurable_mailer'

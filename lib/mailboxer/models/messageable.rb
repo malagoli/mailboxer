@@ -9,9 +9,17 @@ module Mailboxer
         #Converts the model into messageable allowing it to interchange messages and
         #receive notifications
         def acts_as_messageable
-          has_many :messages, :as => :sender
-          has_many :receipts, :order => 'created_at DESC', :dependent => :destroy, :as => :receiver
+          include Messageable
+        end
+      end
 
+      included do
+        has_many :messages, :as => :sender
+        if Rails::VERSION::MAJOR == 4
+          has_many :receipts, -> { order 'created_at DESC' }, dependent: :destroy, as: :receiver
+        else
+          # Rails 3 does it this way
+          has_many :receipts, :order => 'created_at DESC', :dependent => :destroy, :as => :receiver
         end
       end
 
@@ -118,6 +126,7 @@ module Mailboxer
         #move conversation to inbox if it is currently in the trash and should_untrash parameter is true.
         if should_untrash && mailbox.is_trashed?(conversation)
           mailbox.receipts_for(conversation).untrash
+          mailbox.receipts_for(conversation).mark_as_not_deleted
         end
         return reply(conversation, conversation.last_message.recipients, reply_body, subject, sanitize_text, attachment)
         end
@@ -187,6 +196,29 @@ module Mailboxer
           obj.map{ |sub_obj| mark_as_unread(sub_obj) }
         else
         return nil
+        end
+      end
+
+      #Mark the object as deleted for messageable.
+      #
+      #Object can be:
+      #* A Receipt
+      #* A Notification
+      #* A Message
+      #* A Conversation
+      #* An array with any of them
+      def mark_as_deleted(obj)
+        case obj
+          when Receipt
+            return obj.mark_as_deleted if obj.receiver == self
+          when Message, Notification
+            obj.mark_as_deleted(self)
+          when Conversation
+            obj.mark_as_deleted(self)
+          when Array
+            obj.map{ |sub_obj| mark_as_deleted(sub_obj) }
+          else
+            return nil
         end
       end
 

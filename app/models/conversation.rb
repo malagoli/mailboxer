@@ -8,7 +8,7 @@ class Conversation < ActiveRecord::Base
 
 	validates_presence_of :subject
 
-	before_validation :clean
+  before_validation :clean
 
   scope :participant, lambda {|participant|
     select('DISTINCT conversations.*').
@@ -63,6 +63,17 @@ class Conversation < ActiveRecord::Base
 		return if participant.nil?
 		return self.receipts_for(participant).untrash
 	end
+
+  #Mark the conversation as deleted for one of the participants
+  def mark_as_deleted(participant)
+    return if participant.nil?
+    deleted_receipts = self.receipts_for(participant).mark_as_deleted
+    if is_orphaned?
+      self.destroy
+    else
+      deleted_receipts
+    end
+  end
 
   #Returns an array of participants
 	def recipients
@@ -124,6 +135,19 @@ class Conversation < ActiveRecord::Base
 		return false if participant.nil?
 		return self.receipts_for(participant).trash.count!=0
 	end
+
+  #Returns true if the participant has deleted the conversation
+  def is_deleted?(participant)
+    return false if participant.nil?
+    return self.receipts_for(participant).deleted.count == self.receipts_for(participant).count
+  end
+
+  #Returns true if both participants have deleted the conversation
+  def is_orphaned?
+    participants.reduce(true) do |is_orphaned, participant|
+      is_orphaned && is_deleted?(participant)
+    end
+  end
 
   #Returns true if the participant has trashed all the messages of the conversation
 	def is_completely_trashed?(participant)

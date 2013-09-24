@@ -37,6 +37,18 @@ describe Conversation do
     @conversation.recipients.count(@entity2).should==1
   end
 
+  it "should be able to be marked as deleted" do
+    @conversation.move_to_trash(@entity1)
+    @conversation.mark_as_deleted(@entity1)
+    @conversation.should be_is_deleted(@entity1)
+  end
+
+  it "should be removed from the database once deleted by all participants" do
+    @conversation.mark_as_deleted(@entity1)
+    @conversation.mark_as_deleted(@entity2)
+    Conversation.exists?(@conversation.id).should be_false
+  end
+
   it "should be able to be marked as read" do
     #@conversation.move_to_trash(@entity1)
     @conversation.mark_as_read(@entity1)
@@ -47,6 +59,22 @@ describe Conversation do
     @conversation.mark_as_read(@entity1)
     @conversation.mark_as_unread(@entity1)
     @conversation.should be_is_unread(@entity1)
+  end
+
+  it "should be able to add a new participant" do
+    new_user = FactoryGirl.create(:user)
+    @conversation.add_participant(new_user)
+    @conversation.participants.count.should == 3
+    @conversation.participants.should include(new_user, @entity1, @entity2)
+    @conversation.receipts_for(new_user).count.should == @conversation.receipts_for(@entity1).count
+  end
+
+  it "should deliver messages to new participants" do
+    new_user = FactoryGirl.create(:user)
+    @conversation.add_participant(new_user)
+    expect{
+      receipt5 = @entity1.reply_to_all(@receipt4,"Reply body 4")
+    }.to change{ @conversation.receipts_for(new_user).count }.by 1
   end
 
   describe "scopes" do
@@ -98,4 +126,29 @@ describe Conversation do
       @conversation.is_completely_trashed?(@entity1).should be_true
     end
   end
+
+  describe "#is_deleted?" do
+    it "returns false if a recipient has not deleted the conversation" do
+      @conversation.is_deleted?(@entity1).should be_false
+    end
+
+    it "returns true if a recipient has deleted the conversation" do
+      @conversation.mark_as_deleted(@entity1)
+      @conversation.is_deleted?(@entity1).should be_true
+    end
+  end
+
+  describe "#is_orphaned?" do
+    it "returns true if both participants have deleted the conversation" do
+      @conversation.mark_as_deleted(@entity1)
+      @conversation.mark_as_deleted(@entity2)
+      @conversation.is_orphaned?.should be_true
+    end
+
+    it "returns false if one has not deleted the conversation" do
+      @conversation.mark_as_deleted(@entity1)
+      @conversation.is_orphaned?.should be_false
+    end
+  end
+
 end

@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name = "mailboxer"
-  s.version = "0.9.0"
+  s.version = "0.11.0"
   s.authors = ["Eduardo Casanova Cuesta"]
   s.summary = "Messaging system for rails apps."
   s.description = "A Rails engine that allows any model to act as messageable, adding the ability to exchange messages " +
@@ -11,6 +11,7 @@ Gem::Specification.new do |s|
   s.email = "ecasanovac@gmail.com"
   s.homepage = "https://github.com/ging/mailboxer"
   s.files = `git ls-files`.split("\n")
+  s.license = 'MIT'
 
   # Gem dependencies
   #
@@ -26,6 +27,7 @@ Gem::Specification.new do |s|
   end
   # Specs
   s.add_development_dependency('rspec-rails', '>= 2.6.1')
+  s.add_development_dependency("appraisal")
   # Fixtures
   #if RUBY_VERSION >= '1.9.2'
    # s.add_development_dependency('factory_girl', '>= 3.0.0')
@@ -38,7 +40,10 @@ Gem::Specification.new do |s|
   # Integration testing
   s.add_development_dependency('capybara', '>= 0.3.9')
   # Testing database
-  s.add_development_dependency('sqlite3-ruby') unless RUBY_PLATFORM == 'java'
-  s.add_development_dependency('jdbc-sqlite3') if RUBY_PLATFORM == 'java'
-  s.add_development_dependency('activerecord-jdbcsqlite3-adapter') if RUBY_PLATFORM == 'java'
+  if RUBY_PLATFORM == 'java'
+    s.add_development_dependency('jdbc-sqlite3')
+    s.add_development_dependency('activerecord-jdbcsqlite3-adapter', '1.3.0.rc1')
+  else
+    s.add_development_dependency('sqlite3')
+  end
 end
