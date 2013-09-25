@@ -1,8 +1,11 @@
 class Message < Notification
-  attr_accessible :attachment
+
 
   APPROVAL_STATUS = {"waiting_approval" => 2, "approved" => 3,
                      "not_approved" => 4, "suspended" => 5,  "abuse" => 7}
+
+  attr_accessible :attachment, :approval_status_date, :approval_status
+
 
   belongs_to :conversation, :validate => true, :autosave => true
   validates_presence_of :sender
