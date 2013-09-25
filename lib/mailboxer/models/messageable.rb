@@ -1,11 +1,9 @@
 module Mailboxer
   module Models
     module Messageable
-      def self.included(mod)
-        mod.extend(ClassMethods)
-      end
+      extend ActiveSupport::Concern
 
-      module ClassMethods
+      module ActiveRecord
         #Converts the model into messageable allowing it to interchange messages and
         #receive notifications
         def acts_as_messageable
