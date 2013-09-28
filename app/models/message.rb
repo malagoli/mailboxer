@@ -4,7 +4,7 @@ class Message < Notification
   APPROVAL_STATUS = {"waiting_approval" => 2, "approved" => 3,
                      "not_approved" => 4, "suspended" => 5,  "abuse" => 7}
 
-  attr_accessible :attachment, :approval_status_date, :approval_status
+  attr_accessible :attachment, :approval_status_date, :approval_status, :approval_status_note
 
 
   belongs_to :conversation, :validate => true, :autosave => true
@@ -28,6 +28,11 @@ class Message < Notification
     Time.current
   end
 
+  default_value_for :approval_status_note do
+    nil
+  end
+
+
   def set_as_approved
     update_attributes!(:approval_status_date => Time.current,
                        :approval_status => 'approved')
@@ -37,6 +42,12 @@ class Message < Notification
   def set_as_not_approved
     update_attributes!(:approval_status_date => Time.current,
                        :approval_status => 'not_approved')
+  end
+
+  def set_as_not_approved_with_note (note)
+    update_attributes!(:approval_status_date => Time.current,
+                       :approval_status => 'not_approved',
+                       :approval_status_note => note)
   end
 
 if Message.table_exists?
