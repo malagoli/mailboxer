@@ -6,7 +6,7 @@ class Notification < ActiveRecord::Base
   belongs_to :notified_object, :polymorphic => :true
   has_many :receipts, :dependent => :destroy
 
-  validates_presence_of :subject, :body
+  validates_presence_of :subject
 
   scope :recipient, lambda { |recipient|
     joins(:receipts).where('receipts.receiver_id' => recipient.id,'receipts.receiver_type' => recipient.class.base_class.to_s)
