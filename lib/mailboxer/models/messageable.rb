@@ -12,7 +12,8 @@ module Mailboxer
       end
 
       included do
-        has_many :messages, :as => :sender
+        has_many :messages, :as => :sender, :dependent => :destroy,
+
         if Rails::VERSION::MAJOR == 4
           has_many :receipts, -> { order 'created_at DESC' }, dependent: :destroy, as: :receiver
         else
