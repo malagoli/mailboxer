@@ -1,7 +1,6 @@
 class Message < Notification
 
-  APPROVAL_STATUS = {"temporary" => 1, "waiting_approval" => 2, "approved" => 3,
-                     "not_approved" => 4, "suspended" => 5, "removed" => 6, "abuse" => 7}
+
 
   attr_accessible :attachment, :approval_status_date, :approval_status, :approval_status_note
 

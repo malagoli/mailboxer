@@ -39,6 +39,9 @@ class Conversation < ActiveRecord::Base
     joins(:mentions).where(:mentions => {:mentionable_id =>mentionable.id, :mentionable_type => mentionable.class.name})
   }
 
+  scope :approved, where(["notifications.approval_status in (?)",  [Message::APPROVAL_STATUS['approved']  ]])
+
+
 
   #Mark the conversation as read for one of the participants
 	def mark_as_read(participant)

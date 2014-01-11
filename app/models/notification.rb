@@ -1,4 +1,7 @@
 class Notification < ActiveRecord::Base
+  APPROVAL_STATUS = {"temporary" => 1, "waiting_approval" => 2, "approved" => 3,
+                     "not_approved" => 4, "suspended" => 5, "removed" => 6, "abuse" => 7}
+
   attr_accessor :recipients
   attr_accessible :body, :subject, :global, :expires if Mailboxer.protected_attributes?
 
