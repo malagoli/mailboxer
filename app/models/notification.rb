@@ -96,7 +96,7 @@ class Notification < ActiveRecord::Base
         if Mailboxer.uses_emails
           email_to = r.send(Mailboxer.email_method,self)
           if send_mail && !email_to.blank?
-            get_mailer.send_email(self,r).deliver
+            get_mailer.delay.send_email(self,r)
           end
         end
       end

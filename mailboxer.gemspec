@@ -17,6 +17,7 @@ Gem::Specification.new do |s|
   #
   # SQL foreign keys
   s.add_runtime_dependency('foreigner', '>= 0.9.1')
+  s.add_development_dependency('activeadmin')
 
   # Development Gem dependencies
   s.add_runtime_dependency('rails', '> 3.0.0')
@@ -46,4 +47,5 @@ Gem::Specification.new do |s|
   else
     s.add_development_dependency('sqlite3')
   end
+
 end
