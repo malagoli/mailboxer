@@ -113,7 +113,7 @@ class Conversation < ActiveRecord::Base
 
   #Sender of the last approved message.
   def last_approved_sender
-    @last_approved_sender = self.last_approved_message.sender if @last_approved_sender.nil?
+    @last_approved_sender = self.last_approved_message.sender if (@last_approved_sender.nil? and not self.last_approved_message.nil?)
     return @last_approved_sender
   end
 
