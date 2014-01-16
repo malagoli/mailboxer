@@ -122,7 +122,13 @@ class Conversation < ActiveRecord::Base
 	def last_approved_message
 		@last_approved_message = self.messages.all_approved.find(:first, :order => 'created_at DESC') if @last_approved_message.nil?
 		return @last_approved_message
-	end
+  end
+
+  #Last approved message in the conversation.
+  def last_message
+    @last_approved_message = self.messages.find(:first, :order => 'created_at DESC') if @last_approved_message.nil?
+    return @last_approved_message
+  end
 
   #Returns the receipts of the conversation for one participants
 	def receipts_for(participant)
