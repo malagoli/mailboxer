@@ -130,6 +130,18 @@ class Conversation < ActiveRecord::Base
     return @last_approved_message
   end
 
+  def last_message_of_sender sender
+    @last_approved_message = self.messages.where(:sender_id => sender.id, :sender_type => sender.class.name).find(:first, :order => 'created_at DESC') if @last_approved_message.nil?
+    return @last_approved_message
+  end
+
+  def last_approved_message_of_sender sender
+    @last_approved_message = self.messages.all_approved.where(:sender_id => sender.id, :sender_type => sender.class.name).find(:first, :order => 'created_at DESC') if @last_approved_message.nil?
+    return @last_approved_message
+  end
+
+
+
   #Returns the receipts of the conversation for one participants
 	def receipts_for(participant)
 	  return Receipt.conversation(self).recipient(participant)
