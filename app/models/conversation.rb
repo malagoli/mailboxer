@@ -22,14 +22,17 @@ class Conversation < ActiveRecord::Base
   scope :sentbox, lambda {|participant|
     participant(participant).merge(Receipt.sentbox.not_trash)
   }
+
   scope :trash, lambda {|participant|
     participant(participant).merge(Receipt.trash)
   }
   scope :unread,  lambda {|participant|
-    participant(participant).merge(Receipt.is_unread)
+    participant(participant).merge(Receipt.is_unread).
+    order("conversations.updated_at DESC")
   }
   scope :not_trash,  lambda {|participant|
-    participant(participant).merge(Receipt.not_trash)
+    participant(participant).merge(Receipt.not_trash).
+        order("conversations.updated_at DESC")
   }
 
   #scope :for_mentionable_with_approved_messages, lambda {|mentionable|
